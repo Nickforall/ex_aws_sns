@@ -171,6 +171,31 @@ defmodule ExAws.SNSTest do
              ).params
   end
 
+  test "#publish_batch" do
+    expected = %{
+      "Action" => "PublishBatch",
+      "TopicArn" => "arn:aws:sns:us-east-1:982071696186:test-topic",
+      "PublishBatchRequestEntries.entry.1.Id" => 1,
+      "PublishBatchRequestEntries.entry.1.Message" => "Hello, world",
+      "PublishBatchRequestEntries.entry.2.Id" => 2,
+      "PublishBatchRequestEntries.entry.2.Message" => "Goodbye, world"
+    }
+
+    attrs = [
+      %{
+        name: "SenderID",
+        data_type: :string,
+        value: {:string, "sender"}
+      }
+    ]
+
+    assert expected ==
+             SNS.publish_batch(
+               [%{id: 1, message: "Hello, world"}, %{id: 2, message: "Goodbye, world"}],
+               "arn:aws:sns:us-east-1:982071696186:test-topic"
+             ).params
+  end
+
   test "#publish FIFO message" do
     expected = %{
       "Action" => "Publish",

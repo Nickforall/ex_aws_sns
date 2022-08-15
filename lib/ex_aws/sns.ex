@@ -119,6 +119,45 @@ defmodule ExAws.SNS do
     request(:publish, params)
   end
 
+  @doc """
+  Publishes multiple messages to a target/topic ARN.
+  """
+  @spec publish_batch(messages :: list(map()), topic_arn :: binary) ::
+          ExAws.Operation.Query.t()
+  def publish_batch(messages, topic_arn) do
+    messages = build_batch_messages(messages)
+
+    params =
+      %{}
+      |> Map.put("TopicArn", topic_arn)
+      |> Map.merge(messages)
+
+    request(:publish_batch, params)
+  end
+
+  defp build_batch_messages(messages) do
+    messages
+    |> Stream.with_index()
+    |> Enum.reduce(%{}, &build_batch_message/2)
+  end
+
+  defp build_batch_message(
+         {message, i},
+         params
+       ) do
+    param_root = "PublishBatchRequestEntries.entry.#{i + 1}"
+
+    message =
+      message
+      |> camelize_keys()
+      |> Enum.reduce(%{}, fn {key, val}, acc ->
+        acc
+        |> Map.put(param_root <> "." <> key, val)
+      end)
+
+    Map.merge(params, message)
+  end
+
   defp build_message_attributes(attrs) do
     attrs
     |> Stream.with_index()
