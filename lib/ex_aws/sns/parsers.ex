@@ -81,6 +81,27 @@ if Code.ensure_loaded?(SweetXml) do
       {:ok, Map.put(resp, :body, parsed_body)}
     end
 
+    def parse({:ok, %{body: xml} = resp}, :publish_batch) do
+      parsed_body =
+        xml
+        |> SweetXml.xpath(
+          ~x"//PublishBatchResponse",
+          failed: [
+            ~x"./PublishBatchResult/Failed/member"l,
+            message_id: ~x"./MessageId/text()"s,
+            id: ~x"./Id/text()"s
+          ],
+          successful: [
+            ~x"./PublishBatchResult/Successful/member"l,
+            message_id: ~x"./MessageId/text()"s,
+            id: ~x"./Id/text()"s
+          ],
+          request_id: request_id_xpath()
+        )
+
+      {:ok, Map.put(resp, :body, parsed_body)}
+    end
+
     def parse({:ok, %{body: xml} = resp}, :create_platform_application) do
       parsed_body =
         xml

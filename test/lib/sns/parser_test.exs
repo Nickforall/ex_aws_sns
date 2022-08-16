@@ -147,6 +147,42 @@ defmodule ExAws.SNS.ParserTest do
     assert parsed_doc[:request_id] == "f187a3c1-376f-11df-8963-01868b7c937a"
   end
 
+  test "#parsing a publish_batch response" do
+    rsp =
+      """
+      <PublishBatchResponse xmlns="http://sns.amazonaws.com/doc/2010-03-31/">
+        <PublishBatchResult>
+          <Failed>
+            <member>
+              <MessageId>9e118052-cf35-5e0b-af07-db26ab5bc1c3</MessageId>
+              <Id>A</Id>
+            </member>
+          </Failed>
+          <Successful>
+            <member>
+              <MessageId>9e118052-cf35-5e0b-af07-db26ab5bc1c3</MessageId>
+              <Id>B</Id>
+            </member>
+          </Successful>
+        </PublishBatchResult>
+        <ResponseMetadata>
+          <RequestId>c5583156-b72b-54d9-8888-6a22d345db11</RequestId>
+        </ResponseMetadata>
+      </PublishBatchResponse>
+      """
+      |> to_success
+
+    {:ok, %{body: parsed_doc}} = Parsers.parse(rsp, :publish_batch)
+
+    assert parsed_doc.failed == [
+             %{id: "A", message_id: "9e118052-cf35-5e0b-af07-db26ab5bc1c3"}
+           ]
+
+    assert parsed_doc.successful == [
+             %{id: "B", message_id: "9e118052-cf35-5e0b-af07-db26ab5bc1c3"}
+           ]
+  end
+
   test "#parsing a create_platform_application response" do
     rsp =
       """
